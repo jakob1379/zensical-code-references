@@ -1,0 +1,58 @@
+[project]
+name = "zensical-code-references"
+version = "0.1.0"
+description = "Symbol-aware snippet references for zensical and pymdownx.snippets"
+readme = "README.md"
+license = "MIT"
+license-files = ["LICENSE"]
+authors = [
+    { name = "Jakob Guldberg Aaes", email = "jakob1379@gmali.com" }
+]
+requires-python = ">=3.13"
+keywords = ["markdown", "documentation", "snippets", "python", "zensical"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
+    "Topic :: Documentation",
+    "Topic :: Software Development :: Documentation",
+    "Typing :: Typed",
+]
+dependencies = [
+    "markdown>=3.10",
+    "pymdown-extensions>=10.17.1",
+    "zensical>=0.0.24",
+]
+
+[project.urls]
+Homepage = "https://github.com/jakob1379/zensical-code-references"
+Repository = "https://github.com/jakob1379/zensical-code-references"
+Issues = "https://github.com/jakob1379/zensical-code-references/issues"
+Documentation = "https://zensical.org/"
+
+[project.entry-points."markdown.extensions"]
+zensical_symbolic_snippets = "zensical_code_references.symbolic_snippets:makeExtension"
+
+[dependency-groups]
+dev = [
+    "pytest>=8.4.2",
+]
+
+[build-system]
+requires = ["uv_build>=0.10.6,<0.11.0"]
+build-backend = "uv_build"
+
+[tool.pytest]
+pythonpath = ["src"]
+testpaths = ["tests"]
+
+[tool.skylos.whitelist.documented]
+parse_symbolic_reference = "Public API for symbolic reference parsing; used via extension flow and tests"
+makeExtension = "Python-Markdown extension entry point discovered dynamically via entry points"
+run = "Python-Markdown preprocessor hook method invoked by framework runtime"
+_transform_single_line = "Internal preprocessor flow method invoked by run"
+_transform_block_line = "Internal preprocessor flow method invoked by run"
+_resolve_target = "Internal preprocessor flow method invoked by transform helpers"
