@@ -140,6 +140,19 @@ class SymbolResolver:
             line_selector=line_selector,
         )
 
+    def module_exists(self, module: str) -> bool:
+        module_path = Path(*module.split("."))
+        for root in self._roots:
+            file_candidate = (root / module_path).with_suffix(".py")
+            if file_candidate.is_file():
+                return True
+
+            package_candidate = root / module_path / "__init__.py"
+            if package_candidate.is_file():
+                return True
+
+        return False
+
     def _resolve_module_path(self, module: str) -> tuple[Path, Path]:
         module_path = Path(*module.split("."))
         for root in self._roots:
@@ -313,8 +326,14 @@ class SymbolicSnippetPreprocessor(Preprocessor):
         return f"{indent}{resolved}"
 
     def _resolve_target(self, target: str) -> str | None:
-        reference = parse_symbolic_reference(target)
+        try:
+            reference = parse_symbolic_reference(target)
+        except SymbolicSnippetError:
+            return None
         if reference is None:
+            return None
+
+        if not self._resolver.module_exists(reference.module):
             return None
 
         try:

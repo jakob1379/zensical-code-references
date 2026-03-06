@@ -24,7 +24,6 @@ classifiers = [
 dependencies = [
     "markdown>=3.10",
     "pymdown-extensions>=10.17.1",
-    "zensical>=0.0.24",
 ]
 
 [project.urls]
@@ -39,6 +38,7 @@ zensical_symbolic_snippets = "zensical_code_references.symbolic_snippets:makeExt
 [dependency-groups]
 dev = [
     "pytest>=8.4.2",
+    "zensical>=0.0.24",
 ]
 
 [build-system]

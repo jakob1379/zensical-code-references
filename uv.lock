@@ -177,20 +177,22 @@ source = { editable = "." }
 dependencies = [
     { name = "markdown" },
     { name = "pymdown-extensions" },
-    { name = "zensical" },
 ]
 
 [package.dev-dependencies]
 dev = [
     { name = "pytest" },
+    { name = "zensical" },
 ]
 
 [package.metadata]
 requires-dist = [
     { name = "markdown", specifier = ">=3.10" },
     { name = "pymdown-extensions", specifier = ">=10.17.1" },
-    { name = "zensical", specifier = ">=0.0.24" },
 ]
 
 [package.metadata.requires-dev]
-dev = [{ name = "pytest", specifier = ">=8.4.2" }]
+dev = [
+    { name = "pytest", specifier = ">=8.4.2" },
+    { name = "zensical", specifier = ">=0.0.24" },
+]

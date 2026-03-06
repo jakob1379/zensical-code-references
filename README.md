@@ -2,6 +2,45 @@
 
 PoC extension for Zensical that makes `pymdownx.snippets` symbol-aware.
 
+## What this gives you
+
+Markdown usage stays standard:
+
+```text
+--8<-- "my_pkg.api:Client.send"
+```
+
+You reference symbols instead of brittle line ranges, so snippets stay correct
+when code moves.
+
+## Backward compatibility
+
+Existing `pymdownx.snippets` syntax continues to work unchanged. Symbolic
+resolution is only applied when the target matches a real Python module under
+`module_roots`.
+
+```text
+--8<-- "docs/intro.md"
+--8<-- "docs/intro.md:intro"
+--8<-- "src/my_pkg/api.py:12:20"
+--8<-- "my_pkg.api:Client.send"
+```
+
+## Install
+
+```bash
+uv add zensical-code-references
+```
+
+Or:
+
+```bash
+pip install zensical-code-references
+```
+
+`zensical` is optional. This package works as a Python-Markdown extension without
+`zensical`; install `zensical` only if you want to run Zensical builds.
+
 ## Why this exists
 
 Raw line ranges are brittle. If code moves, references like `file.py:88:121` rot.
@@ -23,14 +62,21 @@ Resolved output is rewritten to standard snippets format:
 
 `path/to/file.py:start:end`
 
+For method references without selectors, output uses a multi-range selector so
+the class header and method body are included together:
+
+`path/to/file.py:class_header_start:class_header_end,method_start:method_end`
+
 ## Selector behavior
 
-- No selector: full symbol span.
-- Method references without selectors include class header + method body (not sibling methods like `__init__`).
-- `:start`: from relative line `start` to symbol end.
-- `:start:end`: relative span from symbol start.
-- Positive values are 1-based (`1` is first line of symbol).
-- `0` and negatives are offsets (`0` is symbol start, `-1` is one line above).
+- If you don't add a selector, the whole symbol is used.
+- For method references with no selector, the selection includes the class declaration line(s) and that method's body, but not other methods in the class (for example, not `__init__`).
+- `:start` means "start at this line (relative to the symbol) and go to the end of the symbol."
+- `:start:end` means "use only this relative line range inside the symbol."
+- Positive numbers are 1-based: `1` is the first line of the symbol.
+- `0` and negative numbers are offsets: `0` is the symbol start, `-1` is one line above the symbol start.
+- If `start` or `end` goes past the file limits, values are clamped to valid file bounds.
+- If the range is invalid (`end < start`), resolution fails.
 
 ## Ecosystem comparison
 
@@ -50,6 +96,32 @@ common include plugins:
 Bottom line: existing options either slice by lines/markers or render API docs;
 none provide first-class symbol-addressed snippet transclusion in the same
 workflow as `pymdownx.snippets`.
+
+## Python-Markdown configuration
+
+Use it as a normal Python-Markdown extension, placed before
+`pymdownx.snippets`:
+
+```python
+import markdown
+
+md = markdown.Markdown(
+    extensions=[
+        "zensical_symbolic_snippets",
+        "pymdownx.snippets",
+    ],
+    extension_configs={
+        "zensical_symbolic_snippets": {
+            "module_roots": ["src"],
+            "fail_on_unresolved": True,
+        },
+        "pymdownx.snippets": {
+            "base_path": ["src"],
+            "check_paths": True,
+        },
+    },
+)
+```
 
 ## Zensical configuration (`zensical.toml`)
 
@@ -73,12 +145,6 @@ check_paths = true
 If you define `project.markdown_extensions` explicitly, include all extensions
 you rely on. Leaving out `pymdownx.superfences`/`pymdownx.highlight` causes
 fenced blocks to render as plain text.
-
-Markdown usage stays standard:
-
-```text
---8<-- "my_pkg.api:Client.send"
-```
 
 ## Included proof project
 

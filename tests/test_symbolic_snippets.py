@@ -47,6 +47,20 @@ def docs_workspace(tmp_path):
         ),
         encoding="utf-8",
     )
+    (tmp_path / "changelog.md").write_text(
+        textwrap.dedent(
+            """\
+            # Changelog
+
+            --8<-- [start:intro]
+            Legacy intro snippet content for compatibility checks.
+            --8<-- [end:intro]
+
+            This line should not be included by the intro selector.
+            """
+        ),
+        encoding="utf-8",
+    )
     return tmp_path, module_file
 
 
@@ -209,6 +223,34 @@ def test_unresolved_symbol_raises_error(docs_workspace):
         _render('--8<-- "example_pkg.module:missing"', module_root)
 
 
+def test_dotted_file_style_target_is_not_treated_as_symbolic(docs_workspace):
+    module_root, _ = docs_workspace
+
+    html = _render('--8<-- "changelog.md:intro"', module_root)
+
+    assert "Legacy intro snippet content for compatibility checks." in html
+    assert "This line should not be included" not in html
+
+
+def test_line_range_target_is_not_treated_as_symbolic(docs_workspace):
+    module_root, _ = docs_workspace
+
+    html = _render('--8<-- "example_pkg/module.py:5:8"', module_root)
+
+    assert "def alpha():" in html
+    assert "first = 1" in html
+    assert "second = 2" in html
+    assert "return first + second" in html
+
+
+def test_invalid_symbolic_selector_syntax_passes_through(docs_workspace):
+    module_root, _ = docs_workspace
+
+    html = _render('--8<-- "example_pkg.module:alpha:start"', module_root)
+
+    assert html == ""
+
+
 def test_unresolved_symbol_can_be_ignored(docs_workspace):
     module_root, _ = docs_workspace
 
@@ -222,6 +264,8 @@ def test_unresolved_symbol_can_be_ignored(docs_workspace):
 
 
 def test_zensical_build_renders_symbolic_snippets_from_this_module(tmp_path):
+    pytest.importorskip("zensical")
+
     repo_root = Path(__file__).resolve().parents[1]
     source_root = repo_root / "src"
     docs_dir = tmp_path / "docs"
